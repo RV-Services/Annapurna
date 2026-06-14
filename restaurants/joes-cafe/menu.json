@@ -1,0 +1,21 @@
+{
+  "restaurant": "Joe's Cafe",
+  "primaryColor": "#c0392b",
+  "tables": 8,
+  "categories": [
+    {
+      "name": "Starters",
+      "items": [
+        { "name": "Soup of the Day", "price": 120, "description": "Ask your waiter" },
+        { "name": "Garlic Bread", "price": 80, "description": "With herb butter" }
+      ]
+    },
+    {
+      "name": "Mains",
+      "items": [
+        { "name": "Grilled Chicken", "price": 320, "description": "With seasonal vegetables" },
+        { "name": "Pasta Arrabiata", "price": 260, "description": "Spicy tomato sauce" }
+      ]
+    }
+  ]
+}
