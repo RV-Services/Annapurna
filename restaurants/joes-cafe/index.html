@@ -6,37 +6,91 @@
   <title>Menu</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: sans-serif; background: #f9f9f9; padding-bottom: 100px; }
-    header { background: var(--primary, #c0392b); color: white; padding: 24px; text-align: center; }
-    h1 { font-size: 1.8rem; }
+    body { font-family: sans-serif; background: #f9f9f9; padding-bottom: 160px; }
+
+    header { background: var(--primary, #c0392b); color: white; padding: 20px 24px; text-align: center; }
+    header h1 { font-size: 1.6rem; }
+    header p { font-size: 0.85rem; opacity: 0.85; margin-top: 4px; }
+
     .category { padding: 16px; }
-    .category h2 { font-size: 1.1rem; color: #555; text-transform: uppercase;
-                   letter-spacing: 1px; border-bottom: 1px solid #ddd; padding-bottom: 8px; margin-bottom: 8px; }
-    .item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; }
-    .item-name { font-weight: bold; }
-    .item-desc { font-size: 0.85rem; color: #888; margin-top: 4px; }
-    .item-price { font-weight: bold; color: var(--primary, #c0392b); white-space: nowrap; margin-left: 12px; }
-    .call-btn { position: fixed; bottom: 24px; right: 24px; background: var(--primary, #c0392b);
-                color: white; border: none; border-radius: 50px; padding: 16px 28px;
-                font-size: 1rem; font-weight: bold; cursor: pointer;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-    .toast { position: fixed; bottom: 90px; right: 24px; background: #333; color: white;
-             padding: 12px 20px; border-radius: 8px; display: none; font-size: 0.9rem; }
+    .category h2 { font-size: 0.95rem; color: #555; text-transform: uppercase;
+                   letter-spacing: 1px; border-bottom: 1px solid #ddd;
+                   padding-bottom: 8px; margin-bottom: 8px; }
+
+    .item { display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 0; border-bottom: 1px solid #eee; gap: 8px; }
+    .item-info { flex: 1; }
+    .item-name { font-weight: bold; font-size: 0.95rem; }
+    .item-desc { font-size: 0.8rem; color: #888; margin-top: 2px; }
+    .item-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .item-price { font-weight: bold; color: var(--primary, #c0392b); font-size: 0.95rem; }
+
+    /* Add button */
+    .add-btn { background: var(--primary, #c0392b); color: white; border: none;
+               border-radius: 6px; width: 30px; height: 30px; font-size: 1.2rem;
+               cursor: pointer; display: flex; align-items: center; justify-content: center;
+               flex-shrink: 0; }
+    .add-btn:disabled { background: #ccc; cursor: default; }
+
+    /* Cart bar */
+    .cart-bar { position: fixed; bottom: 0; left: 0; right: 0;
+                background: white; border-top: 1px solid #ddd;
+                padding: 12px 16px; display: none; flex-direction: column; gap: 10px;
+                box-shadow: 0 -4px 16px rgba(0,0,0,0.1); z-index: 100; }
+    .cart-bar.visible { display: flex; }
+    .cart-summary { display: flex; justify-content: space-between; align-items: center; }
+    .cart-count { font-size: 0.85rem; color: #555; }
+    .cart-total { font-weight: bold; font-size: 1rem; color: var(--primary, #c0392b); }
+    .cart-items-list { font-size: 0.82rem; color: #666; line-height: 1.6; max-height: 80px; overflow-y: auto; }
+    .cart-actions { display: flex; gap: 10px; }
+    .place-btn { flex: 1; background: var(--primary, #c0392b); color: white; border: none;
+                 border-radius: 8px; padding: 13px; font-size: 1rem; font-weight: bold;
+                 cursor: pointer; }
+    .call-btn { background: white; color: var(--primary, #c0392b);
+                border: 2px solid var(--primary, #c0392b); border-radius: 8px;
+                padding: 13px 16px; font-size: 0.9rem; font-weight: bold; cursor: pointer; }
+
+    /* Status banner */
+    .status-banner { position: fixed; top: 0; left: 0; right: 0; padding: 14px;
+                     text-align: center; font-weight: bold; font-size: 0.95rem;
+                     z-index: 200; display: none; }
+    .status-banner.pending { background: #fff3cd; color: #856404; display: block; }
+    .status-banner.confirmed { background: #d4edda; color: #155724; display: block; }
+
+    /* Toast */
+    .toast { position: fixed; top: 60px; left: 50%; transform: translateX(-50%);
+             background: #333; color: white; padding: 12px 20px; border-radius: 8px;
+             display: none; font-size: 0.9rem; z-index: 300; white-space: nowrap; }
   </style>
 </head>
 <body>
 
+<div class="status-banner" id="status-banner"></div>
+<div class="toast" id="toast"></div>
+
 <header>
   <h1 id="restaurant-name">Loading...</h1>
+  <p id="table-label"></p>
 </header>
 
 <div id="menu-container"></div>
-<button class="call-btn" onclick="callWaiter()">🔔 Call Waiter</button>
-<div class="toast" id="toast">Waiter has been notified!</div>
+
+<!-- Cart bar (shown when items added) -->
+<div class="cart-bar" id="cart-bar">
+  <div class="cart-summary">
+    <span class="cart-count" id="cart-count">0 items</span>
+    <span class="cart-total" id="cart-total">₹0</span>
+  </div>
+  <div class="cart-items-list" id="cart-items-list"></div>
+  <div class="cart-actions">
+    <button class="call-btn" onclick="callWaiter()">🔔 Call Waiter</button>
+    <button class="place-btn" id="place-btn" onclick="placeOrder()">Place Order</button>
+  </div>
+</div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDVACR6Ejo5oYPl4oHinf3j2XbU1CkmgbM",
@@ -53,7 +107,16 @@
 
   const params = new URLSearchParams(window.location.search);
   const table = params.get("table") || "Unknown";
+  const RESTAURANT_KEY = "joes-cafe"; // change this per restaurant
 
+  document.getElementById("table-label").textContent = `Table ${table}`;
+
+  // Cart state
+  let cart = [];
+  let orderPlaced = false;
+  let orderKey = null;
+
+  // Load menu
   fetch("menu.json")
     .then(r => r.json())
     .then(data => {
@@ -67,28 +130,96 @@
         section.className = "category";
         section.innerHTML = `<h2>${cat.name}</h2>`;
         cat.items.forEach(item => {
-          section.innerHTML += `
-            <div class="item">
-              <div>
-                <div class="item-name">${item.name}</div>
-                <div class="item-desc">${item.description}</div>
-              </div>
+          const div = document.createElement("div");
+          div.className = "item";
+          div.innerHTML = `
+            <div class="item-info">
+              <div class="item-name">${item.name}</div>
+              ${item.description ? `<div class="item-desc">${item.description}</div>` : ""}
+            </div>
+            <div class="item-right">
               <div class="item-price">₹${item.price}</div>
+              <button class="add-btn" onclick="addToCart('${item.name}', ${item.price}, this)">+</button>
             </div>`;
+          section.appendChild(div);
         });
         container.appendChild(section);
       });
     });
 
-  window.callWaiter = function () {
-    push(ref(db, "calls/joes-cafe"), {
+  // Add to cart
+  window.addToCart = function(name, price, btn) {
+    if (orderPlaced) return;
+    const existing = cart.find(i => i.name === name);
+    if (existing) {
+      existing.qty += 1;
+    } else {
+      cart.push({ name, price, qty: 1 });
+    }
+    btn.textContent = cart.find(i => i.name === name).qty + "×";
+    updateCartUI();
+  };
+
+  function updateCartUI() {
+    const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+    const count = cart.reduce((sum, i) => sum + i.qty, 0);
+    document.getElementById("cart-count").textContent = `${count} item${count !== 1 ? "s" : ""}`;
+    document.getElementById("cart-total").textContent = `₹${total}`;
+    document.getElementById("cart-items-list").textContent =
+      cart.map(i => `${i.qty}× ${i.name}`).join("  ·  ");
+    document.getElementById("cart-bar").classList.toggle("visible", cart.length > 0);
+  }
+
+  // Place order
+  window.placeOrder = function() {
+    if (cart.length === 0 || orderPlaced) return;
+    const orderRef = push(ref(db, `orders/${RESTAURANT_KEY}`), {
+      table: table,
+      items: cart,
+      total: cart.reduce((sum, i) => sum + i.price * i.qty, 0),
+      time: new Date().toLocaleTimeString(),
+      status: "pending"
+    });
+    orderKey = orderRef.key;
+    orderPlaced = true;
+
+    // Disable all add buttons
+    document.querySelectorAll(".add-btn").forEach(b => b.disabled = true);
+    document.getElementById("place-btn").disabled = true;
+    document.getElementById("place-btn").textContent = "Order Placed ✓";
+
+    // Show pending status
+    showStatus("pending", "⏳ Order sent — waiting for confirmation...");
+
+    // Listen for waiter confirmation
+    onValue(ref(db, `orders/${RESTAURANT_KEY}/${orderKey}/status`), (snap) => {
+      if (snap.val() === "confirmed") {
+        showStatus("confirmed", "✅ Your order has been confirmed!");
+      }
+    });
+  };
+
+  function showStatus(type, message) {
+    const banner = document.getElementById("status-banner");
+    banner.className = `status-banner ${type}`;
+    banner.textContent = message;
+  }
+
+  // Call waiter
+  window.callWaiter = function() {
+    push(ref(db, `calls/${RESTAURANT_KEY}`), {
       table: table,
       time: new Date().toLocaleTimeString()
     });
+    showToast("Waiter has been notified!");
+  };
+
+  function showToast(msg) {
     const toast = document.getElementById("toast");
+    toast.textContent = msg;
     toast.style.display = "block";
     setTimeout(() => toast.style.display = "none", 3000);
-  };
+  }
 </script>
 
 </body>
